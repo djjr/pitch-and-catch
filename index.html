@@ -1,0 +1,169 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style>
+    .table_header {font-weight: bold; font-family: sans-serif; background-color: azure; text-align: center;}
+    .table_entry  {font-family: sans-serif; text-align: left;}
+</style>
+<script>
+    
+   
+ var group_size = 4   
+    
+function pick_from (set) {
+    var randomindex = Math.floor(Math.random() * set.size);
+    var i = 0
+    for (v of set.values()) {
+        if (i == randomindex) {
+            return(v)
+        }
+    i++
+    } 
+    // NO PICK because empty input 
+    return(-1)
+}
+    
+function shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+        // And swap it with the current element.
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+    }
+    return array;
+} 
+
+function make_pitch_and_catch_schedule() {
+    var names = grabInput()
+    var number_of_groups = names.length / group_size
+    var number_of_sessions = Math.min(4, names.length / number_of_groups)
+        
+    //set up empty data structure: sessions x groups x {pitcher, facilitator, catchers[]}
+    var sessions = []
+    var students = []
+    for (i=0; i<number_of_sessions; i++) {
+        var groups = []
+        for (j=0; j<number_of_groups; j++) {
+            groups.push({pitcher: i*number_of_sessions+j, facilitator: i*number_of_sessions+j, catchers: [i*number_of_sessions+j,i*number_of_sessions+j]})
+            students.push(i*number_of_groups+j)
+        }
+        sessions.push(groups)
+    }
+    // assign pitchers
+    for (i=0; i<number_of_sessions; i++) {
+        //replenish the catcher pool
+        var catcher_pool = new Set(students)
+
+        for (j=0; j<number_of_groups; j++) {
+            sessions[i][j].pitcher = i * number_of_groups + j   
+            sessions[i][j].facilitator = (i * number_of_groups + j + number_of_groups) % (number_of_sessions * number_of_groups)
+            //remove the pitcher and facilitator from available to catch this session
+            catcher_pool.delete(sessions[i][j].pitcher)
+            catcher_pool.delete(sessions[i][j].facilitator)
+        }
+            
+        // if multiple EXTRAs listed as pitchers in last session, move them to earlier session
+        // LATER
+        // if group has "EXTRA as facilitator, move a catcher to that role
+        // LATER
+        for (j=0; j<number_of_groups; j++) {
+             //assign catcher and remove from pool
+            sessions[i][j].catchers[0] = pick_from (catcher_pool)
+            catcher_pool.delete(sessions[i][j].catchers[0])
+            //assign catcher and remove from pool
+            sessions[i][j].catchers[1] = pick_from (catcher_pool)
+            catcher_pool.delete(sessions[i][j].catchers[1])
+        }
+    } // end of looping over sessions
+
+    display_pitch_and_catch (sessions)
+   
+    
+    function display_pitch_and_catch (data) {
+        var d = document.getElementById('output')
+        d.innerHTML = 'x'
+    
+        //LATER scan data structure and reassign folks for empty slots
+        //LATER if there is an empty pitcher, reassign the catchers
+            
+        var y = '<table width="600" border="solid">'  //table
+            
+        for (i=0; i<number_of_sessions; i++) {
+            y = y + "<tr><td colspan='4'><h3>SESSION " + (i+1)+"</h3></td></tr>"
+            y = y + "<tr><td width='150' class='table_header'>Pitcher</td><td width='150' class='table_header'>Facilitator/Catcher</td><td colspan='2' width='300' class='table_header'>Catchers</td></tr>"
+            for (j=0; j<number_of_groups; j++){
+                // Kludgy fixes for when we have wrong number of students
+                // 1. if picther is extra, write it as "FREE"
+                var p = names[sessions[i][j].pitcher]
+                if (p == "EXTRA") {p = "FREE"}
+                p = "<span style='color:red;'>T" + (j + 1) + "</span> " + p
+                var f = names[sessions[i][j].facilitator]
+                var c1 = names[sessions[i][j].catchers[0]]
+                var c2 = names[sessions[i][j].catchers[1]]
+                if (f == "EXTRA") {
+                    f = c1+'*'
+                    c1 = "EMPTY"
+                }
+                y = y + "<tr><td class='table_entry'>"+p+"</td><td class='table_entry'>"+f+"</td><td class='table_entry'>"+c1+"</td><td class='table_entry'>"+c2+"</td></tr>"
+            }
+        }
+        y = y + "</table>"
+        d.innerHTML = y
+    }
+}
+function grabInput(){
+    var data = document.getElementById('list_of_names').value
+    var list_of_names = data.split(",")
+    if (data.length == 0) { list_of_names = ["Rohail A","Seulmin A","Xin A","Joshua A","Vatsal B","Jordan B","Muwanguzi B","Dana C","Maia C","Swakirti C","Sam D","Ammar E","Ahmed E","Yongqing F","Cody F","Katia G","Anoosheh G","Steven G","Karen G","Kai H","Jianing H","Chiamaka I","Lydia J","Haofei L","Janet L","Matthew L","Meagan L","Seulah L","Jiaming L","Yinxi L","Mingyu L","Shujia L","Zhiqing M","Mehak M","Marviel M","Hasan M","Stacey M","Sagal O","Sonal P","Maya P","Wenhui P","Riley P","Zahir Abbas P","Navid R","Esther R","Gianina R","Veronica R","Mahsa S","Lillian S","Leiqin S","Jiajing S","Megha S","Kogulan S","Rohith S","Jullian S","Shweta S","Angel S","Xiaoyue S","Christina V","Simon W","Han W","Anna Y","Xinyi Y","Michelle Y","Running Z","Wenzhao Z","Yidan Z","Siqing Z","Meijia Z"]}
+    for (i=0; i<list_of_names.length; i++) {list_of_names[i]=list_of_names[i].trim()}
+    shuffle(list_of_names)
+    //console.log(data, list_of_names)
+       
+    var number_of_students = list_of_names.length
+    var number_of_groups = Math.ceil(number_of_students / group_size)
+    var number_of_sessions = Math.min(4, Math.ceil(number_of_students / number_of_groups))
+       
+    var number_of_blanks = (group_size - (number_of_students % group_size)) % group_size
+    for (i=0; i<number_of_blanks; i++) {
+        list_of_names.push("EXTRA")
+    }
+        
+    //if number of blanks == number of groups then just leave them all in the last session 
+    //and we don't need the session
+    if (number_of_blanks !== number_of_groups) {
+        if (number_of_blanks == 3) {
+            //swap n-1 to session m-1 and n-2 to session m-2
+            var x = list_of_names[(number_of_sessions-1)*number_of_groups-1]
+            list_of_names[(number_of_sessions-1)*number_of_groups-1] = "EXTRA"
+            list_of_names[list_of_names.length-3] = x
+            var y = list_of_names[(number_of_sessions-2)*number_of_groups-1]
+            list_of_names[(number_of_sessions-2)*number_of_groups-1] = "EXTRA"
+            list_of_names[list_of_names.length-2] = y
+        } 
+    else if (number_of_blanks == 2) {
+            //swap n-1 to session m-1
+            var x = list_of_names[(number_of_sessions-1)*number_of_groups-1]
+            list_of_names[(number_of_sessions-1)*number_of_groups-1] = "EXTRA"
+            list_of_names[list_of_names.length-3] = x
+            console.log("swapping 2", list_of_names[list_of_names.length-2],"for ", (number_of_sessions-2)*number_of_groups-1)
+        }
+    }
+    //LATER: move EXTRAs around so that we get one pitching per session so their catchers can fill in for others
+    //NOTE: extra should never be Facilitator as that means nobody
+    return (list_of_names)
+}
+</script>
+</head>
+<body>
+    <h3>Pitch and Catch Schedules</h3>
+    <p>Enter student names separated by commas or just press button to use built-in sample data.</p>
+    <button type="button" onclick="make_pitch_and_catch_schedule()">Generate Pitch and Catch Schedule</button>
+    <input type="text" id="list_of_names" style="height: 40px; width: 300px;"></input>
+    <div id="output"></div>
+</body>
+</html>

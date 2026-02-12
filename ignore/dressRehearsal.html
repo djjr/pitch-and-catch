@@ -1,0 +1,148 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style>
+    .table_header {font-weight: bold; font-family: sans-serif; background-color: azure; text-align: center;}
+    .table_entry  {font-family: sans-serif; text-align: left;}
+    .blue {background-color: snow;}
+    .beige {background-color: beige;}
+    .tDef {border: solid; border-width: thin; border-collapse:collapse;}
+</style>
+<script>
+    
+   
+ var group_size = 4   
+    
+
+    
+function shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+        // And swap it with the current element.
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+    }
+    return array;
+} 
+function make_dressRehearsal_schedule() {
+    var names = grabInput()
+    var number_of_students = names.length
+    var number_of_groups = 8
+    var number_of_sessions = 8
+    var presentations = []
+    var audience_pool = []
+    
+    for (s = 0; s < number_of_sessions; s++) {
+        session = []
+        for (i=0;i<number_of_students; i++) {audience_pool[i]=i}
+        for (p = 0; p < number_of_groups; p++) {
+           audience_pool.splice(s*number_of_groups + p,1)
+           audience_pool.splice((s*number_of_groups + p + 48) % 64,1) 
+           session.push({'presenter': (s*number_of_groups) + p,
+                         'facilitator': (s*number_of_groups + p + 48) % 64,
+                         'audience':[]})
+        }
+        //shuffle(audience_pool)
+        //console.log('session',s,'presentation',p)
+        for (p2 = 0; p2 < 8; p2++) {
+            //Take next 6 from audience pool
+            session[p2].audience = audience_pool.splice(0,6)
+        }
+        
+        presentations.push(session)
+        
+        
+    }
+    displayHTML(presentations, names)
+    displayROLE(presentations,names)
+
+}
+    
+function displayROLE(data, names) {
+    var roles = []
+    for (i=0;i<64; i++) {roles[i]=['','','','','','','','']}
+    for (s=0;s<8;s++){
+        
+        for (p=0; p<8; p++) {
+            roles[data[s][p].presenter][s] = 'presenter at TV' + (p+1)
+            roles[data[s][p].facilitator][s] = 'facilitator at TV' + (p+1)
+            for(a=0;a<6;a++){roles[data[s][p].audience[a]][s] = 'audience at TV' + (p+1)}
+        }
+    
+    }
+     console.log(roles)
+    names.sort()
+    var t='<table class="tDef">'
+    for (person=0;person<64;person++){
+        //console.log(names[person])
+        t=t+'<tr><td class="tDef">'+names[person]+'</td>'
+        for (p=0;p<8;p++){
+            t=t+'<td class="tDef">'+roles[person][p]+'</td>'
+        }
+        t=t+'</tr>'        
+    }
+    t=t+'</table>'
+    //console.log(t)
+        document.getElementById('roles').innerHTML=t
+
+}
+function displayHTML(data, names){
+    var t=''
+    names.sort()
+    for (s=0;s<8;s++){
+        t=t+'<h3>Session '+ s +'</h3>'
+        for (p=0; p<8; p++) {
+            t=t+'<h4>TV' + (p+1) + ' Presenter: ' + names[data[s][p].presenter] + ' Facilitator: ' + names[data[s][p].facilitator] + '</h4>'
+            t=t+'<p>'
+            for (i=0;i<data[s][p].audience.length; i++) {
+                t=t + names[data[s][p].audience[i]] + (i<data[s][p].audience.length-1 ? ', ' : '')
+            }
+            t=t+'</p>'
+        }
+    }
+    //console.log(t)
+    document.getElementById('output').innerHTML=t
+}
+
+       
+    
+function grabInput(){
+    var data = document.getElementById('list_of_names').value
+    var list_of_names = data.split(",")
+    if (data.length == 0) { list_of_names = ['Rohail A', 'Seulmin A', 'Yashar B', 'Vatsal B', 'Jordan B', 'Dana C', 
+                                             'Maia C', 'Sam D', 'Ammar E', 'Cody F', 'Katia G', 'Anoosheh G', 'Steven G', 
+                                             'Shubham G', 'Jie G', 'Eric H', 'Kai H', 'Chiamaka I', 'Janet L', 'Meagan L', 
+                                             'Seulah L', 'Jiaming L', 'Xiafan L', 'Mingyu L', 'Shujia L', 'Zhiqing M', 
+                                             'Mehak M', 'Marviel M', 'Stacey M', 'Victor B M', 'Sagal O', 'Sonal P', 
+                                             'Maya P', 'Wenhui P', 'Riley P', 'Prottoy', 'Zahir Abbas P', 'Navid R', 
+                                             'Esther R', 'Gianina R', 'Veronica R', 'Lillian S', 'Leiqin S', 'Jiajing S', 
+                                             'Kogulan S', 'Shweta S', 'Angel S', 'Xiaoyue S', 'Christina V', 'Han W', 
+                                             'Yaxian W', 'Jia Xin W', 'Jermaine W', 'Novina W', 'Xiang X', 'Anna Y', 
+                                             'Xinyi Y', 'Michelle Y', 'Running Z', 'Yidan Z', 'Siqing Z', 'Meijia Z', 
+                                             'Mirna Z']}
+    for (i=0; i<list_of_names.length; i++) {list_of_names[i]=list_of_names[i].trim()}
+    shuffle(list_of_names) 
+    var number_of_students = list_of_names.length
+    var number_of_blanks = 64 - number_of_students
+    for (i=0; i<number_of_blanks; i++) {
+        list_of_names.push("EXTRA")
+    }    
+    return (list_of_names)
+}
+</script>
+</head>
+<body>
+    <button type="button" onclick="make_dressRehearsal_schedule()">TEST</button>
+    <h3>Pitch and Catch Schedules</h3>
+    <p>Enter student names separated by commas or just press button to use built-in sample data.</p>
+    <button type="button" onclick="make_pitch_and_catch_schedule()">Generate Pitch and Catch Schedule</button>
+    <input type="text" id="list_of_names" style="height: 40px; width: 300px;"></input>
+    <div id="output"></div>
+    <div id="roles"></div>
+</body>
+</html>

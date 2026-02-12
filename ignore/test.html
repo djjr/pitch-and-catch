@@ -1,0 +1,113 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style>
+    .table_header {font-weight: bold; font-family: sans-serif; background-color: azure; text-align: center;}
+    .table_entry  {font-family: sans-serif; text-align: center;}
+</style>
+<script>
+
+    
+   
+    
+    
+function pick_from (set) {
+    var randomindex = Math.floor(Math.random() * set.size);
+    var i = 0
+    for (v of set.values()) {
+        if (i == randomindex) {
+            //console.log('size was', set.size, 'value returned=', v)
+            return(v)
+        }
+    i++} 
+    console.log('NO PICK from ', set)
+    return(-1)
+}
+
+    
+    
+    function another_way() {
+        names = ['Ali', 'Berk', 'Chris', 'Dan',
+                 'Eli', 'Fasil', 'Garth', 'Holi',
+                 'Isil', 'Jaq', 'Kali', 'Ludo',
+                 'Mish', 'Nama', 'Omar', 'Pen',
+                 'Sunny', 'Naisha', 'Sara', 'Sarah',
+                 'Alex', 'Bob', 'Cato', 'Darwin']
+        var number_of_sessions = 4
+        var number_of_groups = 6
+        //get number of students and size of groups
+        //compute number of rounds, etc.
+        //set up empty data structure
+          //sessions x groups x {pitcher, facilitator, catchers[]}
+          var sessions = []
+          var students = []
+          for (i=0; i<number_of_sessions; i++) {
+              var groups = []
+              for (j=0; j<number_of_groups; j++) {
+                  groups.push({pitcher: i*10+j, facilitator: i*10+j, catchers: [i*10+j,i*10+j]})
+                  students[i*number_of_groups+j] = i*number_of_groups+j
+              }
+              sessions.push(groups)
+          }
+        console.log(sessions)
+        // assign pitchers
+        for (i=0; i<number_of_sessions; i++) {
+              //replenish the catcher pool
+              var catcher_pool = new Set(students)
+            
+            
+              for (j=0; j<number_of_groups; j++) {
+                  sessions[i][j].pitcher = i * number_of_sessions + j   
+                  sessions[i][j].facilitator = (i * number_of_sessions + j + 4) % 16
+                  //remove the pitcher and facilitator from available to catch this session
+                  catcher_pool.delete(sessions[i][j].pitcher)
+                  catcher_pool.delete(sessions[i][j].facilitator)
+              }
+              for (j=0; j<number_of_groups; j++) {
+                  //assign catcher and remove from pool
+                  sessions[i][j].catchers[0] = pick_from (catcher_pool)
+                  catcher_pool.delete(sessions[i][j].catchers[0])
+                  //assign catcher and remove from pool
+                  sessions[i][j].catchers[1] = pick_from (catcher_pool)
+                  catcher_pool.delete(sessions[i][j].catchers[1])
+              }
+        }
+       // console.log(sessions)
+       // for (i=0; i<number_of_sessions; i++) {
+              //pretty print
+      //        console.log('SESSION ' + (i + 1))
+      //        for (j=0; j<number_of_groups; j++) {
+      //          console.log('GROUP ' + (j + 1), names [sessions[i][j].pitcher], names [sessions[i][j].facilitator], names [sessions[i][j].catchers[0]], names [sessions[i][j].catchers[1]]  )  
+                  
+       //       }
+        
+       // }
+        display_pitch_and_catch (sessions)
+        
+        function display_pitch_and_catch (data) {
+            var d = document.getElementById('output')
+            d.innerHTML = 'x'
+            var y = '<table width="600" border="solid">'  //table
+            
+            for (i=0; i<number_of_sessions; i++) {
+                y = y + "<tr><td colspan='4'><h1>SESSION " + (i+1)+"</h1></td></tr>"
+                y = y + "<tr><td width='150' class='table_header'>Pitcher</td><td width='150' class='table_header'>Facilitator/Catcher</td><td colspan='2' width='300' class='table_header'>Catchers</td></tr>"
+                for (j=0; j<number_of_groups; j++){
+                    y = y + "<tr><td class='table_entry'>"+names [sessions[i][j].pitcher]+"</td><td class='table_entry'>"+names [sessions[i][j].facilitator]+"</td><td class='table_entry'>"+names [sessions[i][j].catchers[0]]+"</td><td class='table_entry'>"+names [sessions[i][j].catchers[1]]+"</td></tr>"
+                }
+            }
+        y = y + "</table>"
+        d.innerHTML = y
+    }
+    }
+</script>
+</head>
+<body>
+    
+
+    <button type="button" onclick="pitch_and_catch()">Initialize</button>
+
+     <button type="button" onclick="another_way()">Generate Pitch and Catch Schedule</button>
+<div id="output"></div>
+</body>
+</html>
